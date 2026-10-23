@@ -1,0 +1,90 @@
+/**
+ * Custom styles for the Retro Pixel News Broadcast page.
+ * Layout utilities come from Tailwind; this file covers CRT and ticker effects.
+ */
+
+body {
+  font-family: 'VT323', monospace;
+  background-color: #0f172a;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+.pixel-font {
+  font-family: 'Press Start 2P', cursive;
+}
+
+/* CRT scanline overlay */
+.scanlines {
+  background:
+    linear-gradient(
+      rgba(18, 16, 16, 0) 50%,
+      rgba(0, 0, 0, 0.35) 50%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.03),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.03)
+    );
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.98;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  52% {
+    opacity: 0.96;
+  }
+
+  54% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 0.97;
+  }
+
+  100% {
+    opacity: 0.99;
+  }
+}
+
+.crt-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 16s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.pixel-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Pixel News Broadcast</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-6 bg-slate-950 text-slate-100">
+
+  <header class="w-full max-w-6xl flex flex-col sm:flex-row items-center justify-between border-b-4 border-red-600 pb-3 mb-4 gap-2">
+    <div class="flex items-center gap-3">
+      <div class="w-4 h-4 bg-red-600 rounded-full animate-ping" aria-hidden="true"></div>
+      <h1 class="pixel-font text-xl md:text-2xl text-red-500 tracking-wider">
+        RETRO NEWS NETWORK
+      </h1>
+    </div>
+    <div class="flex items-center gap-4 text-sm md:text-base text-slate-400">
+      <span id="live-indicator"
+            class="bg-red-600 text-white font-bold px-2 py-0.5 rounded text-xs animate-pulse">
+        ● LIVE
+      </span>
+      <span id="clock-display" class="font-mono text-yellow-400">00:00:00 UTC</span>
+    </div>
+  </header>
+
+  <main id="main-broadcast-container"
+        class="w-full max-w-6xl relative bg-black border-8 border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col items-center justify-center">
+    <div class="relative w-full aspect-video bg-slate-900 overflow-hidden flex items-center justify-center">
+      <canvas id="pixel-canvas" class="pixel-canvas" width="640" height="360"
+              aria-label="Pixel news broadcast studio"></canvas>
+
+      <div id="scanline-overlay"
+           class="absolute inset-0 scanlines crt-flicker z-10"
+           aria-hidden="true"></div>
+
+      <div class="absolute bottom-0 left-0 right-0 h-10 md:h-12 bg-red-950/90 border-t-2 border-red-600 flex items-center z-20 overflow-hidden shadow-inner">
+        <div class="bg-yellow-500 text-black font-bold px-3 md:px-4 h-full flex items-center z-20 shrink-0 text-xs md:text-sm tracking-wider uppercase border-r-2 border-yellow-600 pixel-font shadow-md">
+          BREAKING NEWS
+        </div>
+        <div class="overflow-hidden flex-1 relative h-full flex items-center">
+          <div id="ticker-text-container" class="w-full">
+            <span id="ticker-text"
+                  class="animate-marquee text-lg md:text-xl font-bold tracking-widest text-yellow-300 font-mono"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section id="studio-controls"
+           class="w-full max-w-6xl mt-6 bg-slate-900 border-2 border-slate-700 rounded-lg p-4 md:p-6 shadow-lg">
+    <h2 class="text-lg font-bold text-slate-200 mb-4 border-b border-slate-800 pb-2 flex items-center justify-between">
+      <span>STUDIO BROADCAST CONTROLS</span>
+      <span class="text-xs text-slate-400 font-normal">URL hash controls active</span>
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="input-img-url" class="block text-xs text-slate-400 uppercase mb-1">
+          Background image URL (#img=...)
+        </label>
+        <input type="text" id="input-img-url" placeholder="Paste image URL here..."
+               class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition">
+      </div>
+      <div>
+        <label for="input-ticker-text" class="block text-xs text-slate-400 uppercase mb-1">
+          Ticker message (#ticker=...)
+        </label>
+        <input type="text" id="input-ticker-text" placeholder="Type news ticker message here..."
+               class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-sm text-slate-200 focus:outline-none focus:border-red-500 transition">
+      </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="w-full sm:flex-1">
+        <label for="share-url-input" class="block text-xs text-slate-400 uppercase mb-1">
+          Direct broadcast link
+        </label>
+        <div class="flex gap-2">
+          <input type="text" id="share-url-input" readonly
+                 class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-400 select-all font-mono">
+          <button id="copy-btn" type="button"
+                  class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded text-xs transition shrink-0">
+            COPY LINK
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button id="scanlines-btn" type="button"
+                class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3 py-2 rounded text-xs border border-slate-600 transition">
+          SCANLINES: <span id="scanlines-status" class="text-green-400">ON</span>
+        </button>
+        <button id="tv-mode-btn" type="button"
+                class="bg-purple-700 hover:bg-purple-600 text-white font-bold px-3 py-2 rounded text-xs transition shadow border border-purple-500">
+          TV MODE (#tv=true)
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer id="studio-footer" class="mt-6 text-xs text-slate-500 text-center">
+    Retro Pixel News Generator &bull;
+    Use URL hash parameters
+    <code class="text-slate-400">#img=YOUR_URL</code>,
+    <code class="text-slate-400">#ticker=TEXT</code>, or
+    <code class="text-slate-400">#tv=true</code>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
