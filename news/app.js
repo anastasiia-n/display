@@ -508,7 +508,6 @@ function initStudio() {
   }
 
   let bgImage = new Image();
-  bgImage.crossOrigin = 'Anonymous';
   let isBgLoaded = false;
 
   /**
@@ -518,7 +517,6 @@ function initStudio() {
   function loadBgImage(url) {
     isBgLoaded = false;
     bgImage = new Image();
-    bgImage.crossOrigin = 'Anonymous';
     bgImage.onload = () => {
       isBgLoaded = true;
     };
