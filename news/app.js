@@ -434,7 +434,7 @@ function drawStudioForeground(ctx) {
   ctx.fillStyle = '#78350f';
   ctx.fillRect(170, 250, 470, 15);
 
-  const micX = 380;
+  const micX = 580; // Moved microphone to the right side of the presenter
   const micY = 230;
 
   ctx.fillStyle = '#334155';
