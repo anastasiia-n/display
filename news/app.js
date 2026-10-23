@@ -15,22 +15,17 @@ const CANVAS_WIDTH = 640;
 /** @const {number} Canvas logical height in pixels. */
 const CANVAS_HEIGHT = 360;
 
-/** @const {number} Backstage monitor width (16:9 with MONITOR_HEIGHT). */
-const MONITOR_WIDTH = 500; // Increased size
+/** @const {number} Backstage monitor width in pixels. */
+const MONITOR_WIDTH = 468;
 
-/** @const {number} Backstage monitor height (16:9 with MONITOR_WIDTH). */
-const MONITOR_HEIGHT = 281; // Increased size (approx. 16:9 aspect for 500 width)
+/** @const {number} Backstage monitor height in pixels (approximately 16:9). */
+const MONITOR_HEIGHT = 260;
 
 /** @const {number} Backstage monitor top-left X on the canvas. */
-const MONITOR_X = 10; // Adjusted position
+const MONITOR_X = 10;
 
 /** @const {number} Backstage monitor top-left Y on the canvas. */
-const MONITOR_Y = 10; // Adjusted position
-
-// --- Backstage Monitor (Image) ---
-
-/** @const {number} Scale factor for other studio elements (anchor, desk, mic, grid). */
-const ELEMENTS_SHRINK_FACTOR = 0.7; // Everything else scaled smaller
+const MONITOR_Y = 10;
 
 /**
  * Application state for studio UI modes.
@@ -238,7 +233,7 @@ function updateClock() {
 }
 
 /**
- * Draws a solid color fill for the studio wall and a subtle grid.
+ * Fills the studio wall with a solid color.
  * @param {!CanvasRenderingContext2D} ctx
  * @param {number} width
  * @param {number} height
@@ -272,8 +267,8 @@ function drawPlaceholderScreen(ctx, x, y, w, h) {
   ctx.fillRect(x, y + h - 30, w, 30);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = `${12 * ELEMENTS_SHRINK_FACTOR}px "Press Start 2P"`;
-  ctx.fillText('NO MEDIA SIGNAL', x + (20 * ELEMENTS_SHRINK_FACTOR), y + h - (10 * ELEMENTS_SHRINK_FACTOR));
+  ctx.font = '8.4px "Press Start 2P"';
+  ctx.fillText('NO MEDIA SIGNAL', x + 14, y + h - 7);
 }
 
 /**
@@ -344,7 +339,7 @@ function drawAnchor(ctx, tick, anim) {
   ctx.strokeStyle = '#334155';
   ctx.lineWidth = 1;
 
-  const gridSize = 32 * ELEMENTS_SHRINK_FACTOR; // Scaled down grid
+  const gridSize = 22.4;
   for (let x = 0; x < width; x += gridSize) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -383,8 +378,8 @@ function drawPlaceholderScreen(ctx, x, y, w, h) {
   ctx.fillRect(x, y + h - 30, w, 30);
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = `${12 * ELEMENTS_SHRINK_FACTOR}px "Press Start 2P"`;
-  ctx.fillText('NO MEDIA SIGNAL', x + (20 * ELEMENTS_SHRINK_FACTOR), y + h - (10 * ELEMENTS_SHRINK_FACTOR));
+  ctx.font = '8.4px "Press Start 2P"';
+  ctx.fillText('NO MEDIA SIGNAL', x + 14, y + h - 7);
 }
 
 /**
@@ -457,107 +452,104 @@ function drawAnchor(ctx, tick, anim) {
     anim.eyeState = 'open';
   }
 
-  const s = ELEMENTS_SHRINK_FACTOR;
-  anim.headOffsetY = Math.sin(tick * 0.08) * (1.5 * s); // Scale head bobbing
+  anim.headOffsetY = Math.sin(tick * 0.08) * 1.05;
 
-  // Base position for the scaled anchor, centered in the right column
-  // (anchorX, anchorY) here defines the center of the anchor's head, similar to original intent
+  // Center the anchor in the canvas area to the right of the monitor.
   const anchorX = MONITOR_X + MONITOR_WIDTH + ((CANVAS_WIDTH - (MONITOR_X + MONITOR_WIDTH)) / 2);
-  const anchorY = (CANVAS_HEIGHT / 2) + (20 * s) + anim.headOffsetY; // Adjusted vertically to be more central
+  // Lower the presenter so the desk covers the bottom of the suit.
+  const anchorY = (CANVAS_HEIGHT / 2) + 70 + anim.headOffsetY;
 
   // Hair (back)
   ctx.fillStyle = '#1e3a8a';
-  ctx.fillRect(anchorX - (35 * s), anchorY - (95 * s), (70 * s), (45 * s));
+  ctx.fillRect(anchorX - 24.5, anchorY - 66.5, 49, 31.5);
 
   // Suit
   ctx.fillStyle = '#1e1b4b';
-  ctx.fillRect(anchorX - (50 * s), anchorY - (30 * s), (100 * s), (80 * s));
+  ctx.fillRect(anchorX - 35, anchorY - 21, 70, 56);
 
   ctx.fillStyle = '#312e81';
-  ctx.fillRect(anchorX - (30 * s), anchorY - (30 * s), (20 * s), (50 * s));
-  ctx.fillRect(anchorX + (10 * s), anchorY - (30 * s), (20 * s), (50 * s));
+  ctx.fillRect(anchorX - 21, anchorY - 21, 14, 35);
+  ctx.fillRect(anchorX + 7, anchorY - 21, 14, 35);
 
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(anchorX - (10 * s), anchorY - (30 * s), (20 * s), (40 * s));
+  ctx.fillRect(anchorX - 7, anchorY - 21, 14, 28);
 
   ctx.fillStyle = '#dc2626';
-  ctx.fillRect(anchorX - (4 * s), anchorY - (25 * s), (8 * s), (30 * s));
+  ctx.fillRect(anchorX - 2.8, anchorY - 17.5, 5.6, 21);
 
   // Head
   ctx.fillStyle = '#fde047';
-  ctx.fillRect(anchorX - (25 * s), anchorY - (80 * s), (50 * s), (55 * s));
-  ctx.fillRect(anchorX - (10 * s), anchorY - (30 * s), (20 * s), (10 * s));
+  ctx.fillRect(anchorX - 17.5, anchorY - 56, 35, 38.5);
+  ctx.fillRect(anchorX - 7, anchorY - 21, 14, 7);
 
   // Hair (front)
   ctx.fillStyle = '#2563eb';
-  ctx.fillRect(anchorX - (28 * s), anchorY - (90 * s), (56 * s), (18 * s));
-  ctx.fillRect(anchorX - (28 * s), anchorY - (78 * s), (12 * s), (20 * s));
+  ctx.fillRect(anchorX - 19.6, anchorY - 63, 39.2, 12.6);
+  ctx.fillRect(anchorX - 19.6, anchorY - 54.6, 8.4, 14);
 
   // Glasses
   ctx.fillStyle = '#0f172a';
-  ctx.fillRect(anchorX - (22 * s), anchorY - (65 * s), (18 * s), (14 * s));
-  ctx.fillRect(anchorX + (4 * s), anchorY - (65 * s), (18 * s), (14 * s));
-  ctx.fillRect(anchorX - (4 * s), anchorY - (61 * s), (8 * s), (4 * s));
+  ctx.fillRect(anchorX - 15.4, anchorY - 45.5, 12.6, 9.8);
+  ctx.fillRect(anchorX + 2.8, anchorY - 45.5, 12.6, 9.8);
+  ctx.fillRect(anchorX - 2.8, anchorY - 42.7, 5.6, 2.8);
 
   ctx.fillStyle = '#38bdf8';
-  ctx.fillRect(anchorX - (20 * s), anchorY - (63 * s), (14 * s), (10 * s));
-  ctx.fillRect(anchorX + (6 * s), anchorY - (63 * s), (14 * s), (10 * s));
+  ctx.fillRect(anchorX - 14, anchorY - 44.1, 9.8, 7);
+  ctx.fillRect(anchorX + 4.2, anchorY - 44.1, 9.8, 7);
 
   ctx.fillStyle = '#0f172a';
   if (anim.eyeState === 'open') {
-    ctx.fillRect(anchorX - (14 * s), anchorY - (60 * s), (4 * s), (5 * s));
-    ctx.fillRect(anchorX + (12 * s), anchorY - (60 * s), (4 * s), (5 * s));
+    ctx.fillRect(anchorX - 9.8, anchorY - 42, 2.8, 3.5);
+    ctx.fillRect(anchorX + 8.4, anchorY - 42, 2.8, 3.5);
   } else {
-    ctx.fillRect(anchorX - (18 * s), anchorY - (58 * s), (10 * s), (2 * s));
-    ctx.fillRect(anchorX + (8 * s), anchorY - (58 * s), (10 * s), (2 * s));
+    ctx.fillRect(anchorX - 12.6, anchorY - 40.6, 7, 1.4);
+    ctx.fillRect(anchorX + 5.6, anchorY - 40.6, 7, 1.4);
   }
 
   ctx.fillStyle = '#ca8a04';
-  ctx.fillRect(anchorX - (2 * s), anchorY - (52 * s), (4 * s), (6 * s));
+  ctx.fillRect(anchorX - 1.4, anchorY - 36.4, 2.8, 4.2);
 
   ctx.fillStyle = '#991b1b';
   if (anim.mouthOpen) {
-    ctx.fillRect(anchorX - (8 * s), anchorY - (40 * s), (16 * s), (8 * s));
+    ctx.fillRect(anchorX - 5.6, anchorY - 28, 11.2, 5.6);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(anchorX - (6 * s), anchorY - (40 * s), (12 * s), (2 * s));
+    ctx.fillRect(anchorX - 4.2, anchorY - 28, 8.4, 1.4);
   } else {
-    ctx.fillRect(anchorX - (8 * s), anchorY - (38 * s), (16 * s), (3 * s));
+    ctx.fillRect(anchorX - 5.6, anchorY - 26.6, 11.2, 2.1);
   }
 }
 
 /**
- * Draws the news desk and microphone in the foreground. This represents the "table" and microphone.
+ * Draws the news desk and microphone in the foreground.
  * @param {!CanvasRenderingContext2D} ctx
  */
 function drawStudioForeground(ctx) {
-  const s = ELEMENTS_SHRINK_FACTOR;
-
-  // Repositioned and scaled desk
-  const deskX = MONITOR_X + MONITOR_WIDTH + (10 * s); // Offset from monitor edge
-  const deskY = CANVAS_HEIGHT - (100 * s) - (10 * s); // 10px from bottom, scaled height
-  const deskW = 460 * s;
-  const deskH = 100 * s;
+  // Start the desk at the canvas midpoint, allowing for the top panel overhang.
+  const deskX = CANVAS_WIDTH / 2 - 7;
+  const deskY = CANVAS_HEIGHT - 70 - 7;
+  const deskW = CANVAS_WIDTH / 2;
+  const deskH = 70;
 
   ctx.fillStyle = '#451a03';
   ctx.fillRect(deskX, deskY, deskW, deskH);
 
   ctx.fillStyle = '#78350f';
   // Desk top panel
-  ctx.fillRect(deskX - (10 * s), deskY - (15 * s), deskW + (20 * s), (15 * s));
+  ctx.fillRect(deskX - 7, deskY - 10.5, deskW + 14, 10.5);
 
-  // Mic position relative to desk
-  const micX = deskX + (deskW / 2); // Centered on the desk's width
-  const micY = deskY - (50 * s); // Above the desk, scaled
+  // Place the microphone beside the presenter on the right side of the desk.
+  const micX = deskX + deskW - 43;
+  const micY = deskY - 28;
 
   ctx.fillStyle = '#334155';
-  ctx.fillRect(micX - (8 * s), micY + (20 * s), (16 * s), (5 * s));
-  ctx.fillRect(micX - (2 * s), micY, (4 * s), (20 * s));
+  ctx.fillRect(micX - 5.6, micY + 14, 11.2, 3.5);
+  ctx.fillRect(micX - 1.4, micY, 2.8, 14);
 
   ctx.fillStyle = '#94a3b8';
-  ctx.fillRect(micX - (5 * s), micY - (10 * s), (10 * s), (12 * s));
+  ctx.fillRect(micX - 3.5, micY - 7, 7, 8.4);
 
   ctx.fillStyle = '#ef4444';
-  ctx.fillRect(micX - (5 * s), micY - (4 * s), (10 * s), (2 * s));
+  ctx.fillRect(micX - 3.5, micY - 2.8, 7, 1.4);
 }
 
 /**

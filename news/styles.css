@@ -14,7 +14,7 @@ body {
   font-family: 'Press Start 2P', cursive;
 }
 
-/* CRT scanline overlay */
+/* CRT scanline overlay (JS punches a hole over the backstage monitor image) */
 .scanlines {
   background:
     linear-gradient(
