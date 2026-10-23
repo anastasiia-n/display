@@ -7,13 +7,16 @@
 /** @const {string} Fallback background when no #img hash is set. */
 const DEFAULT_BG_URL =
     'https://images.unsplash.com/photo-1518709268805-4e9042af9f23' +
-    '?auto=format&fit=crop&w=1000&q=80';
+    '?auto=format&fit=crop&w=1920&q=80';
 
 /** @const {number} Canvas logical width in pixels. */
 const CANVAS_WIDTH = 640;
 
 /** @const {number} Canvas logical height in pixels. */
 const CANVAS_HEIGHT = 360;
+
+/** @const {number} Scale from logical scene coordinates to canvas pixels. */
+const CANVAS_SCALE = 3;
 
 /** @const {number} Backstage monitor width in pixels. */
 const MONITOR_WIDTH = 468;
@@ -1043,6 +1046,7 @@ function initStudio() {
   if (!ctx) {
     return;
   }
+  ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
 
   let bgImage = new Image();
   let isBgLoaded = false;
