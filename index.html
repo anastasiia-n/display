@@ -2,92 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Text Display</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;600;700;800;900&family=Outfit:wght@600;800&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
-
+  <title>display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      font-family: 'Google Sans Flex', 'Google Sans', 'Roboto', sans-serif;
-      overflow: hidden;
-      transition: background 0.3s, color 0.3s;
+    body {
+      margin: 2rem;
+      font-family: system-ui, sans-serif;
+      line-height: 1.5;
     }
-    .container {
-      max-width: 90vw;
-      padding: 4vh 4vw;
-    }
-    h1 {
-      margin: 0 0 2.5vh 0;
-      font-size: 3.5vw;
-      font-weight: 800;
-      opacity: 0.75;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-    .text {
-      margin: 0;
-      font-size: 6vw;
-      font-weight: 700;
-      line-height: 1.25;
-      white-space: pre-wrap;
-      word-break: break-word;
-      letter-spacing: -0.5px;
-    }
+    a { color: #111827; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 id="title"></h1>
-    <div class="text" id="text">Loading...</div>
-  </div>
-
-  <script>
-    function getParam(name) {
-      const href = window.location.href;
-      const regex = new RegExp('[?&]' + name + '=([^&]*)', 'i');
-      const match = href.match(regex);
-      return match ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : null;
-    }
-
-    const textParam = getParam('text') || getParam('msg') || 'No message provided';
-    const titleParam = getParam('title') || '';
-    const bgParam = getParam('bg') || 'ffffff';
-    const colorParam = getParam('color') || '111827';
-    const sizeParam = getParam('size');
-    const fontParam = getParam('font');
-
-    const formatColor = c => (c.startsWith('#') || c.startsWith('rgb')) ? c : '#' + c;
-    document.body.style.background = formatColor(bgParam);
-    document.body.style.color = formatColor(colorParam);
-
-    if (fontParam) {
-      document.body.style.fontFamily = `'${fontParam}', 'Google Sans Flex', 'Roboto', sans-serif`;
-    }
-
-    const textEl = document.getElementById('text');
-    textEl.textContent = textParam;
-    if (sizeParam) {
-      textEl.style.fontSize = sizeParam;
-    }
-
-    const titleEl = document.getElementById('title');
-    if (titleParam) {
-      titleEl.textContent = titleParam;
-    } else {
-      titleEl.style.display = 'none';
-    }
-  </script>
+  <h1>display</h1>
+  <ul>
+    <li><a href="text/">text</a></li>
+  </ul>
 </body>
 </html>
