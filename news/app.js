@@ -29,11 +29,21 @@ const MONITOR_Y = 10;
 
 /**
  * Application state for studio UI modes.
- * @type {{tvMode: boolean, scanlinesActive: boolean}}
+ * @type {{tvMode: boolean, scanlinesActive: boolean, presenter: string}}
  */
 const state = {
   tvMode: false,
   scanlinesActive: true,
+  presenter: 'male',
+};
+
+const PRESENTER_IDS = ['male', 'female', 'cyber', 'robot'];
+const PRESENTER_SCALE = 0.7;
+const PRESENTER_DRAWERS = {
+  male: drawMalePresenter,
+  female: drawFemalePresenter,
+  cyber: drawCyberPresenter,
+  robot: drawRobotPresenter,
 };
 
 /**
@@ -75,6 +85,29 @@ function setTvMode(forceState) {
     }
   }
 
+  updateShareUrl();
+}
+
+/**
+ * Updates the presenter control to show the active presenter.
+ */
+function updatePresenterButton() {
+  if (els.presenterStatus) {
+    els.presenterStatus.textContent = state.presenter.toUpperCase();
+  }
+  if (els.presenterBtn) {
+    els.presenterBtn.setAttribute(
+        'aria-label', `Change presenter. Current presenter: ${state.presenter}`);
+  }
+}
+
+/**
+ * Advances to the next presenter and updates the share URL.
+ */
+function cyclePresenter() {
+  const currentIndex = PRESENTER_IDS.indexOf(state.presenter);
+  state.presenter = PRESENTER_IDS[(currentIndex + 1) % PRESENTER_IDS.length];
+  updatePresenterButton();
   updateShareUrl();
 }
 
@@ -173,6 +206,7 @@ function updateShareUrl() {
   if (tickerVal) {
     params.set('ticker', tickerVal);
   }
+  params.set('presenter', state.presenter);
   if (state.tvMode) {
     params.set('tv', 'true');
   }
@@ -183,7 +217,7 @@ function updateShareUrl() {
 }
 
 /**
- * Parses location.hash and applies img, ticker, and tv settings.
+ * Parses location.hash and applies img, ticker, presenter, and tv settings.
  * @param {function(string): void} loadBgImage Callback to load a background.
  */
 function parseHash(loadBgImage) {
@@ -192,7 +226,12 @@ function parseHash(loadBgImage) {
 
   const imgParam = params.get('img');
   const tickerParam = params.get('ticker');
+  const presenterParam = params.get('presenter');
   const tvParam = params.get('tv') || params.get('tvmode');
+
+  state.presenter = PRESENTER_IDS.includes(presenterParam) ?
+      presenterParam : 'male';
+  updatePresenterButton();
 
   if (imgParam) {
     els.inputImgUrl.value = imgParam;
@@ -326,35 +365,6 @@ function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
 }
 
 /**
- * Draws the animated pixel-art news anchor. This is the "presenter".
- * @param {!CanvasRenderingContext2D} ctx
- * @param {number} tick Animation frame counter.
- * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
- */
-function drawAnchor(ctx, tick, anim) {
-  if (tick % 12 === 0) {
-    anim.mouthOpen = Math.random() > 0.4;
-  }
-
-  ctx.strokeStyle = '#334155';
-  ctx.lineWidth = 1;
-
-  const gridSize = 22.4;
-  for (let x = 0; x < width; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
-  for (let y = 0; y < height; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
-  }
-}
-
-/**
  * Draws the colorful "no signal" placeholder on the backstage monitor.
  * @param {!CanvasRenderingContext2D} ctx
  * @param {number} x
@@ -436,7 +446,7 @@ function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
 }
 
 /**
- * Draws the animated pixel-art news anchor.
+ * Draws one of the animated pixel-art presenters.
  * @param {!CanvasRenderingContext2D} ctx
  * @param {number} tick Animation frame counter.
  * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
@@ -445,77 +455,341 @@ function drawAnchor(ctx, tick, anim) {
   if (tick % 12 === 0) {
     anim.mouthOpen = Math.random() > 0.4;
   }
-
   if (tick % 180 === 0) {
     anim.eyeState = 'blink';
   } else if (tick % 180 === 10) {
     anim.eyeState = 'open';
   }
 
-  anim.headOffsetY = Math.sin(tick * 0.08) * 1.05;
+  anim.headOffsetY = Math.sin(tick * 0.08) * 1.5;
+  const anchorX = MONITOR_X + MONITOR_WIDTH +
+      ((CANVAS_WIDTH - (MONITOR_X + MONITOR_WIDTH)) / 2);
+  const anchorY = (CANVAS_HEIGHT / 2) + 70;
+  ctx.save();
+  ctx.translate(anchorX, anchorY);
+  ctx.scale(PRESENTER_SCALE, PRESENTER_SCALE);
+  PRESENTER_DRAWERS[state.presenter](ctx, tick, anim);
+  ctx.restore();
+}
 
-  // Center the anchor in the canvas area to the right of the monitor.
-  const anchorX = MONITOR_X + MONITOR_WIDTH + ((CANVAS_WIDTH - (MONITOR_X + MONITOR_WIDTH)) / 2);
-  // Lower the presenter so the desk covers the bottom of the suit.
-  const anchorY = (CANVAS_HEIGHT / 2) + 70 + anim.headOffsetY;
+/**
+ * Draws the male presenter with glasses, dark hair, and a charcoal suit.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick
+ * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
+ */
+function drawMalePresenter(ctx, tick, anim) {
+  const y = anim.headOffsetY;
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-25, y - 96, 50, 40);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(-23, y - 96, 12, 10);
 
-  // Hair (back)
-  ctx.fillStyle = '#1e3a8a';
-  ctx.fillRect(anchorX - 24.5, anchorY - 66.5, 49, 31.5);
-
-  // Suit
-  ctx.fillStyle = '#1e1b4b';
-  ctx.fillRect(anchorX - 35, anchorY - 21, 70, 56);
-
-  ctx.fillStyle = '#312e81';
-  ctx.fillRect(anchorX - 21, anchorY - 21, 14, 35);
-  ctx.fillRect(anchorX + 7, anchorY - 21, 14, 35);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(anchorX - 7, anchorY - 21, 14, 28);
-
-  ctx.fillStyle = '#dc2626';
-  ctx.fillRect(anchorX - 2.8, anchorY - 17.5, 5.6, 21);
-
-  // Head
-  ctx.fillStyle = '#fde047';
-  ctx.fillRect(anchorX - 17.5, anchorY - 56, 35, 38.5);
-  ctx.fillRect(anchorX - 7, anchorY - 21, 14, 7);
-
-  // Hair (front)
-  ctx.fillStyle = '#2563eb';
-  ctx.fillRect(anchorX - 19.6, anchorY - 63, 39.2, 12.6);
-  ctx.fillRect(anchorX - 19.6, anchorY - 54.6, 8.4, 14);
-
-  // Glasses
   ctx.fillStyle = '#0f172a';
-  ctx.fillRect(anchorX - 15.4, anchorY - 45.5, 12.6, 9.8);
-  ctx.fillRect(anchorX + 2.8, anchorY - 45.5, 12.6, 9.8);
-  ctx.fillRect(anchorX - 2.8, anchorY - 42.7, 5.6, 2.8);
+  ctx.fillRect(-45, y - 30, 90, 80);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-28, y - 30, 18, 50);
+  ctx.fillRect(10, y - 30, 18, 50);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(-10, y - 30, 20, 40);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(-4, y - 25, 8, 30);
 
-  ctx.fillStyle = '#38bdf8';
-  ctx.fillRect(anchorX - 14, anchorY - 44.1, 9.8, 7);
-  ctx.fillRect(anchorX + 4.2, anchorY - 44.1, 9.8, 7);
+  ctx.fillStyle = '#b45309';
+  ctx.fillRect(-23, y - 82, 46, 56);
+  ctx.fillStyle = '#d97706';
+  ctx.fillRect(-21, y - 80, 42, 52);
+  ctx.fillRect(-8, y - 30, 16, 10);
 
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-25, y - 94, 50, 18);
+  ctx.fillRect(-25, y - 82, 8, 20);
+  ctx.fillRect(17, y - 82, 8, 20);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(-25, y - 80, 3, 12);
+  ctx.fillRect(22, y - 80, 3, 12);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-22, y - 66, 18, 14);
+  ctx.fillRect(4, y - 66, 18, 14);
+  ctx.fillRect(-4, y - 62, 8, 3);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillRect(-20, y - 64, 14, 10);
+  ctx.fillRect(6, y - 64, 14, 10);
   ctx.fillStyle = '#0f172a';
   if (anim.eyeState === 'open') {
-    ctx.fillRect(anchorX - 9.8, anchorY - 42, 2.8, 3.5);
-    ctx.fillRect(anchorX + 8.4, anchorY - 42, 2.8, 3.5);
+    ctx.fillRect(-14, y - 61, 4, 5);
+    ctx.fillRect(12, y - 61, 4, 5);
   } else {
-    ctx.fillRect(anchorX - 12.6, anchorY - 40.6, 7, 1.4);
-    ctx.fillRect(anchorX + 5.6, anchorY - 40.6, 7, 1.4);
+    ctx.fillRect(-18, y - 59, 10, 2);
+    ctx.fillRect(8, y - 59, 10, 2);
   }
-
-  ctx.fillStyle = '#ca8a04';
-  ctx.fillRect(anchorX - 1.4, anchorY - 36.4, 2.8, 4.2);
-
-  ctx.fillStyle = '#991b1b';
+  ctx.fillStyle = '#92400e';
+  ctx.fillRect(-2, y - 53, 4, 6);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-21, y - 44, 42, 18);
+  ctx.fillRect(-10, y - 48, 20, 5);
+  ctx.fillStyle = '#450a0a';
   if (anim.mouthOpen) {
-    ctx.fillRect(anchorX - 5.6, anchorY - 28, 11.2, 5.6);
+    ctx.fillRect(-8, y - 42, 16, 7);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(anchorX - 4.2, anchorY - 28, 8.4, 1.4);
+    ctx.fillRect(-6, y - 42, 12, 2);
   } else {
-    ctx.fillRect(anchorX - 5.6, anchorY - 26.6, 11.2, 2.1);
+    ctx.fillRect(-8, y - 41, 16, 3);
+  }
+}
+
+/**
+ * Draws the female presenter with brown hair and a red blazer.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick
+ * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
+ */
+function drawFemalePresenter(ctx, tick, anim) {
+  const y = anim.headOffsetY;
+  ctx.fillStyle = '#291d18';
+  ctx.fillRect(-28, y - 92, 56, 82);
+  ctx.fillStyle = '#45281d';
+  ctx.fillRect(-26, y - 90, 52, 80);
+  ctx.fillStyle = '#7f1d1d';
+  ctx.fillRect(-42, y - 30, 84, 80);
+  ctx.fillStyle = '#dc2626';
+  ctx.fillRect(-40, y - 28, 80, 78);
+  ctx.fillStyle = '#b91c1c';
+  ctx.fillRect(-24, y - 28, 14, 48);
+  ctx.fillRect(10, y - 28, 14, 48);
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(-10, y - 28, 20, 36);
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(-6, y - 22, 3, 3);
+  ctx.fillRect(-1, y - 20, 3, 3);
+  ctx.fillRect(4, y - 22, 3, 3);
+  ctx.fillStyle = '#fde047';
+  ctx.fillRect(-8, y - 36, 16, 16);
+  ctx.fillStyle = '#eab308';
+  ctx.fillRect(-7, y - 36, 14, 4);
+
+  ctx.fillStyle = '#fde047';
+  ctx.fillRect(-21, y - 82, 42, 46);
+  ctx.fillRect(-17, y - 36, 34, 6);
+  ctx.fillRect(-11, y - 30, 22, 4);
+  ctx.fillStyle = '#fef08a';
+  ctx.fillRect(-18, y - 80, 36, 42);
+  ctx.fillRect(-14, y - 38, 28, 6);
+  ctx.fillRect(-9, y - 32, 18, 3);
+
+  ctx.fillStyle = '#543322';
+  ctx.fillRect(-24, y - 94, 48, 18);
+  ctx.fillRect(-25, y - 80, 8, 44);
+  ctx.fillRect(17, y - 80, 8, 44);
+  ctx.fillStyle = '#784833';
+  ctx.fillRect(-16, y - 92, 32, 4);
+  ctx.fillRect(-23, y - 78, 3, 38);
+  ctx.fillRect(20, y - 78, 3, 38);
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillRect(-22, y - 48, 3, 5);
+  ctx.fillRect(19, y - 48, 3, 5);
+
+  ctx.fillStyle = '#3a2016';
+  ctx.fillRect(-14, y - 66, 8, 2);
+  ctx.fillRect(6, y - 66, 8, 2);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-15, y - 62, 10, 2);
+  ctx.fillRect(5, y - 62, 10, 2);
+  if (anim.eyeState === 'open') {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-14, y - 60, 8, 5);
+    ctx.fillRect(6, y - 60, 8, 5);
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(-12, y - 60, 4, 5);
+    ctx.fillRect(8, y - 60, 4, 5);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-11, y - 59, 2, 3);
+    ctx.fillRect(9, y - 59, 2, 3);
+  } else {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-14, y - 59, 8, 2);
+    ctx.fillRect(6, y - 59, 8, 2);
+  }
+  ctx.fillStyle = '#ca8a04';
+  ctx.fillRect(-1, y - 52, 3, 4);
+  ctx.fillStyle = '#f43f5e';
+  ctx.globalAlpha = 0.3;
+  ctx.fillRect(-16, y - 48, 5, 3);
+  ctx.fillRect(11, y - 48, 5, 3);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#be123c';
+  if (anim.mouthOpen) {
+    ctx.fillRect(-7, y - 43, 14, 7);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-5, y - 43, 10, 2);
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillRect(-5, y - 38, 10, 2);
+  } else {
+    ctx.fillRect(-7, y - 42, 14, 3);
+    ctx.fillStyle = '#fb7185';
+    ctx.fillRect(-5, y - 42, 10, 1);
+  }
+}
+
+/**
+ * Draws the cyberpunk presenter with neon hair and a glowing visor.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick
+ * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
+ */
+function drawCyberPresenter(ctx, tick, anim) {
+  const y = anim.headOffsetY;
+  ctx.fillStyle = '#831843';
+  ctx.fillRect(-32, y - 104, 64, 45);
+  ctx.fillStyle = '#3b0764';
+  ctx.fillRect(-45, y - 30, 90, 80);
+  ctx.fillStyle = '#581c87';
+  ctx.fillRect(-42, y - 28, 84, 78);
+  ctx.fillStyle = '#06b6d4';
+  ctx.fillRect(-32, y - 30, 10, 42);
+  ctx.fillRect(22, y - 30, 10, 42);
+  ctx.fillStyle = '#f43f5e';
+  ctx.fillRect(-30, y - 28, 2, 40);
+  ctx.fillRect(28, y - 28, 2, 40);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-12, y - 28, 24, 40);
+  ctx.fillStyle = '#22d3ee';
+  ctx.fillRect(-2, y - 25, 4, 30);
+  ctx.fillStyle = '#fdba74';
+  ctx.fillRect(-10, y - 36, 20, 16);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(-12, y - 30, 24, 4);
+  ctx.fillStyle = '#06b6d4';
+  ctx.fillRect((tick % 20 < 10) ? -8 : 6, y - 29, 3, 2);
+  ctx.fillStyle = '#fed7aa';
+  ctx.fillRect(-22, y - 82, 44, 52);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-26, y - 72, 6, 20);
+  ctx.fillRect(20, y - 72, 6, 20);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(-25, y - 68, 2, 12);
+  ctx.fillRect(23, y - 68, 2, 12);
+  ctx.fillStyle = '#ec4899';
+  ctx.fillRect(-28, y - 102, 56, 26);
+  ctx.fillStyle = '#f472b6';
+  ctx.fillRect(-22, y - 106, 10, 12);
+  ctx.fillRect(-6, y - 108, 12, 14);
+  ctx.fillRect(10, y - 104, 10, 10);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-25, y - 72, 50, 24);
+  ctx.fillStyle = '#06b6d4';
+  ctx.fillRect(-23, y - 70, 46, 20);
+  ctx.fillStyle = '#a855f7';
+  ctx.fillRect(-23, y - 64, 46, 12);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-18 + ((tick * 3) % 36), y - 68, 8, 16);
+  ctx.fillStyle = '#f43f5e';
+  ctx.fillRect(-20 + ((tick * 2) % 38), y - 60, 4, 2);
+  ctx.fillStyle = '#f97316';
+  ctx.fillRect(-2, y - 46, 4, 4);
+  ctx.fillStyle = '#0284c7';
+  if (anim.mouthOpen) {
+    ctx.fillRect(-8, y - 38, 16, 8);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-6, y - 36, 12, 4);
+  } else {
+    ctx.fillRect(-8, y - 37, 16, 3);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-4, y - 36, 8, 1);
+  }
+}
+
+/**
+ * Draws the robot presenter with a metallic body and animated display.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick
+ * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
+ */
+function drawRobotPresenter(ctx, tick, anim) {
+  const y = anim.headOffsetY;
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-46, y - 31, 92, 82);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(-44, y - 29, 88, 78);
+  ctx.fillStyle = '#64748b';
+  ctx.fillRect(-42, y - 29, 84, 8);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(-40, y - 26, 3, 3);
+  ctx.fillRect(37, y - 26, 3, 3);
+  ctx.fillRect(-40, y + 20, 3, 3);
+  ctx.fillRect(37, y + 20, 3, 3);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(-22, y - 18, 44, 32);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-20, y - 16, 40, 28);
+  ctx.fillStyle = tick % 20 < 10 ? '#22c55e' : '#16a34a';
+  const signalHeight = 4 + (tick % 12);
+  ctx.fillRect(-15, y + 4 - signalHeight, 6, signalHeight);
+  ctx.fillRect(-5, y + 4 - signalHeight / 2, 6, signalHeight / 2);
+  ctx.fillRect(5, y + 4 - signalHeight * 0.8, 6, signalHeight * 0.8);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-12, y - 40, 24, 14);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(-10, y - 38, 20, 3);
+  ctx.fillRect(-10, y - 32, 20, 3);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(-30, y - 88, 60, 52);
+  ctx.fillStyle = '#64748b';
+  ctx.fillRect(-28, y - 86, 56, 48);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillRect(-26, y - 86, 52, 6);
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(-4, y - 102, 8, 16);
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(-2, y - 100, 4, 14);
+  ctx.fillStyle = tick % 16 < 8 ? '#ef4444' : '#7f1d1d';
+  ctx.fillRect(-7, y - 109, 14, 8);
+  if (tick % 16 < 8) {
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillRect(-3, y - 107, 6, 4);
+  }
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-34, y - 72, 6, 20);
+  ctx.fillRect(28, y - 72, 6, 20);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(-33, y - 68, 2, 12);
+  ctx.fillRect(31, y - 68, 2, 12);
+  ctx.fillStyle = '#090d16';
+  ctx.fillRect(-22, y - 78, 44, 36);
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(-21, y - 77, 42, 34);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  for (let i = 0; i < 34; i += 3) {
+    ctx.fillRect(-21, y - 77 + i, 42, 1);
+  }
+  ctx.fillStyle = '#fef08a';
+  if (anim.eyeState === 'open') {
+    ctx.fillRect(-16, y - 72, 10, 10);
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(-14, y - 70, 6, 6);
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(6, y - 72, 10, 10);
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(8, y - 70, 6, 6);
+  } else {
+    ctx.fillRect(-16, y - 67, 10, 2);
+    ctx.fillRect(6, y - 67, 10, 2);
+  }
+  ctx.fillStyle = '#22c55e';
+  if (anim.mouthOpen) {
+    const b1 = Math.min(10, 3 + (tick % 7));
+    const b2 = Math.min(12, 5 + (tick % 5));
+    const b3 = Math.min(10, 4 + (tick % 8));
+    ctx.fillRect(-14, y - 50 - b1, 5, b1 + 2);
+    ctx.fillRect(-7, y - 50 - b2, 5, b2 + 2);
+    ctx.fillRect(0, y - 50 - b3, 5, b3 + 2);
+    ctx.fillRect(7, y - 50 - b1, 5, b1 + 2);
+  } else {
+    ctx.fillRect(-14, y - 50, 26, 2);
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(-8, y - 50, 14, 2);
   }
 }
 
@@ -564,6 +838,8 @@ function cacheElements() {
   els.scanlinesBtn = document.getElementById('scanlines-btn');
   els.tvModeBtn = document.getElementById('tv-mode-btn');
   els.copyBtn = document.getElementById('copy-btn');
+  els.presenterBtn = document.getElementById('presenter-btn');
+  els.presenterStatus = document.getElementById('presenter-status');
   els.inputImgUrl = document.getElementById('input-img-url');
   els.inputTickerText = document.getElementById('input-ticker-text');
   els.tickerText = document.getElementById('ticker-text');
@@ -587,6 +863,9 @@ function bindUiEvents(loadBgImage) {
     els.copyBtn.addEventListener('click', () => {
       copyShareUrl();
     });
+  }
+  if (els.presenterBtn) {
+    els.presenterBtn.addEventListener('click', cyclePresenter);
   }
 
   els.inputImgUrl.addEventListener('input', (e) => {
