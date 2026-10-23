@@ -278,8 +278,145 @@ function updateClock() {
  * @param {number} height
  */
 function drawStudioBackground(ctx, width, height) {
-  ctx.fillStyle = '#1e293b';
+  ctx.fillStyle = '#0f172a';
   ctx.fillRect(0, 0, width, height);
+}
+
+/**
+ * Draws a procedural synthwave skyline scaled to the presenter stage.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} x
+ * @param {number} y
+ * @param {number} width
+ * @param {number} height
+ * @param {number} tick
+ */
+function drawNightCityGraphic(ctx, x, y, width, height, tick) {
+  const animationTick = Math.floor(tick / 18);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
+  ctx.translate(x, y);
+  ctx.scale(width / 600, height / 210);
+
+  const sceneWidth = 600;
+  const sceneHeight = 210;
+  const sky = ctx.createLinearGradient(0, 0, 0, sceneHeight);
+  sky.addColorStop(0, '#090514');
+  sky.addColorStop(0.5, '#1e112a');
+  sky.addColorStop(1, '#3b1843');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, sceneWidth, sceneHeight);
+
+  const stars = [
+    {x: 40, y: 20}, {x: 120, y: 35}, {x: 230, y: 15},
+    {x: 310, y: 40}, {x: 410, y: 25}, {x: 490, y: 45},
+  ];
+  stars.forEach((star, index) => {
+    if ((animationTick + index * 15) % 40 < 25) {
+      ctx.fillStyle = index % 2 === 0 ? '#38bdf8' : '#f43f5e';
+      ctx.fillRect(star.x, star.y, 3, 3);
+    }
+  });
+
+  ctx.fillStyle = '#1e1b4b';
+  const farBuildings = [
+    [0, 40, 70], [35, 30, 90], [60, 50, 60], [105, 40, 110],
+    [140, 55, 80], [190, 35, 100], [220, 60, 75], [275, 45, 120],
+    [315, 50, 85], [360, 40, 105], [395, 60, 70], [450, 50, 115],
+    [495, 45, 80], [535, 65, 95],
+  ];
+  farBuildings.forEach(([buildingX, buildingW, buildingH]) => {
+    ctx.fillRect(
+        buildingX, sceneHeight - buildingH, buildingW, buildingH);
+  });
+
+  const nearBuildings = [
+    [10, 50, 120, '#0f172a', '#06b6d4', false],
+    [70, 40, 150, '#111827', '#f43f5e', true],
+    [120, 65, 100, '#0f172a', '#a855f7', false],
+    [195, 45, 165, '#111827', '#eab308', false],
+    [250, 55, 130, '#0f172a', '#06b6d4', false],
+    [315, 70, 110, '#111827', '#ec4899', false],
+    [390, 45, 155, '#0f172a', '#22c55e', true],
+    [445, 60, 125, '#111827', '#38bdf8', false],
+    [515, 55, 140, '#0f172a', '#f43f5e', false],
+  ];
+  nearBuildings.forEach(
+      ([buildingX, buildingW, buildingH, color, accent, hasAntenna], index) => {
+        const buildingY = sceneHeight - buildingH;
+        ctx.fillStyle = color;
+        ctx.fillRect(buildingX, buildingY, buildingW, buildingH);
+
+        if (hasAntenna) {
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(buildingX + buildingW / 2 - 1, buildingY - 20, 3, 20);
+          ctx.fillStyle = animationTick % 30 < 15 ? '#ef4444' : '#7f1d1d';
+          ctx.fillRect(buildingX + buildingW / 2 - 2, buildingY - 23, 5, 4);
+        }
+
+        for (let windowY = buildingY + 10;
+          windowY < sceneHeight - 10; windowY += 14) {
+          for (let windowX = buildingX + 6;
+            windowX < buildingX + buildingW - 8; windowX += 10) {
+            const isLit =
+                ((windowX * 7 + windowY * 13 + animationTick / 10 + index) % 7) > 2;
+            ctx.fillStyle = isLit ? accent : 'rgba(255, 255, 255, 0.05)';
+            ctx.fillRect(windowX, windowY, 5, 7);
+          }
+        }
+
+        ctx.fillStyle = accent;
+        ctx.fillRect(buildingX + buildingW - 3, buildingY, 2, buildingH);
+      });
+
+  ctx.fillStyle = '#020617';
+  ctx.fillRect(0, sceneHeight - 12, sceneWidth, 12);
+  ctx.fillStyle = '#f43f5e';
+  ctx.fillRect((animationTick * 2) % (sceneWidth - 60), sceneHeight - 8, 40, 2);
+  ctx.fillStyle = '#06b6d4';
+  ctx.fillRect(
+      sceneWidth - ((animationTick * 1.5) % (sceneWidth - 40)),
+      sceneHeight - 5, 30, 2);
+
+  ctx.restore();
+}
+
+/**
+ * Draws the city backdrop and dark spotlight vignette behind the presenter.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick
+ */
+function drawPresenterBackdrop(ctx, tick) {
+  const stageX = MONITOR_X + MONITOR_WIDTH;
+  const stageY = MONITOR_Y;
+  const stageWidth = CANVAS_WIDTH - stageX;
+  const stageHeight = CANVAS_HEIGHT - stageY;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(stageX, stageY, stageWidth, stageHeight);
+  ctx.clip();
+
+  const cityWidth = stageWidth * 3;
+  const cityHeight = stageHeight;
+  const cityX = stageX - stageWidth;
+  const cityY = stageY;
+  drawNightCityGraphic(ctx, cityX, cityY, cityWidth, cityHeight, tick);
+  ctx.fillStyle = 'rgba(2, 6, 23, 0.78)';
+  ctx.fillRect(stageX, stageY, stageWidth, stageHeight);
+
+  const anchorX = stageX + stageWidth / 2;
+  const anchorY = (CANVAS_HEIGHT / 2) + 70 - 30;
+  const spotlight = ctx.createRadialGradient(
+      anchorX, anchorY, 10, anchorX, anchorY, stageWidth * 0.9);
+  spotlight.addColorStop(0, 'rgba(0, 0, 0, 0.55)');
+  spotlight.addColorStop(0.6, 'rgba(15, 23, 42, 0.35)');
+  spotlight.addColorStop(1, 'rgba(2, 6, 23, 0.15)');
+  ctx.fillStyle = spotlight;
+  ctx.fillRect(stageX, stageY, stageWidth, stageHeight);
+  ctx.restore();
 }
 
 /**
@@ -799,7 +936,7 @@ function drawRobotPresenter(ctx, tick, anim) {
  */
 function drawStudioForeground(ctx) {
   // Start the desk at the canvas midpoint, allowing for the top panel overhang.
-  const deskX = CANVAS_WIDTH / 2 - 7;
+  const deskX = CANVAS_WIDTH / 2;
   const deskY = CANVAS_HEIGHT - 70 - 7;
   const deskW = CANVAS_WIDTH / 2;
   const deskH = 70;
@@ -941,6 +1078,7 @@ function initStudio() {
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     drawStudioBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
+    drawPresenterBackdrop(ctx, tick);
     drawBackstageScreen(ctx, bgImage, isBgLoaded);
     drawAnchor(ctx, tick, anim);
     drawStudioForeground(ctx);
