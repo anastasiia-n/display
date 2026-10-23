@@ -27,6 +27,8 @@ const MONITOR_X = 10; // Adjusted position
 /** @const {number} Backstage monitor top-left Y on the canvas. */
 const MONITOR_Y = 10; // Adjusted position
 
+// --- Backstage Monitor (Image) ---
+
 /** @const {number} Scale factor for other studio elements (anchor, desk, mic, grid). */
 const ELEMENTS_SHRINK_FACTOR = 0.7; // Everything else scaled smaller
 
@@ -244,6 +246,100 @@ function updateClock() {
 function drawStudioBackground(ctx, width, height) {
   ctx.fillStyle = '#1e293b';
   ctx.fillRect(0, 0, width, height);
+}
+
+/**
+ * Draws the colorful "no signal" placeholder on the backstage monitor.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ */
+function drawPlaceholderScreen(ctx, x, y, w, h) {
+  ctx.fillStyle = '#0284c7';
+  ctx.fillRect(x, y, w, h);
+
+  const colors =
+      ['#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#ec4899'];
+  const stripeW = w / colors.length;
+  colors.forEach((col, idx) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(x + idx * stripeW, y, stripeW, h - 30);
+  });
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(x, y + h - 30, w, 30);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `${12 * ELEMENTS_SHRINK_FACTOR}px "Press Start 2P"`;
+  ctx.fillText('NO MEDIA SIGNAL', x + (20 * ELEMENTS_SHRINK_FACTOR), y + h - (10 * ELEMENTS_SHRINK_FACTOR));
+}
+
+/**
+ * Draws the backstage media monitor, optionally filled with a user image.
+ * This is the main "image" display.
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {?HTMLImageElement} bgImage
+ * @param {boolean} isBgLoaded
+ */
+function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
+  const screenX = MONITOR_X;
+  const screenY = MONITOR_Y;
+  const screenW = MONITOR_WIDTH;
+  const screenH = MONITOR_HEIGHT;
+
+  ctx.fillStyle = '#090d16';
+  ctx.fillRect(screenX - 6, screenY - 6, screenW + 12, screenH + 12);
+
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(screenX - 2, screenY - 2, screenW + 4, screenH + 4);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(screenX, screenY, screenW, screenH);
+  ctx.clip();
+
+  if (isBgLoaded && bgImage && bgImage.complete) {
+    try {
+      // Cover-fit into the 16:9 monitor; crop overflow.
+      const imgRatio = bgImage.width / bgImage.height;
+      const screenRatio = 16 / 9;
+      let renderW = screenW;
+      let renderH = screenH;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (imgRatio > screenRatio) {
+        renderW = screenH * imgRatio;
+        offsetX = (screenW - renderW) / 2;
+      } else {
+        renderH = screenW / imgRatio;
+        offsetY = (screenH - renderH) / 2;
+      }
+
+      ctx.drawImage(
+          bgImage, screenX + offsetX, screenY + offsetY, renderW, renderH);
+    } catch (err) {
+      drawPlaceholderScreen(ctx, screenX, screenY, screenW, screenH);
+    }
+  } else {
+    drawPlaceholderScreen(ctx, screenX, screenY, screenW, screenH);
+  }
+
+  ctx.restore();
+}
+
+/**
+ * Draws the animated pixel-art news anchor. This is the "presenter".
+ * @param {!CanvasRenderingContext2D} ctx
+ * @param {number} tick Animation frame counter.
+ * @param {{mouthOpen: boolean, eyeState: string, headOffsetY: number}} anim
+ */
+function drawAnchor(ctx, tick, anim) {
+  if (tick % 12 === 0) {
+    anim.mouthOpen = Math.random() > 0.4;
+  }
 
   ctx.strokeStyle = '#334155';
   ctx.lineWidth = 1;
@@ -430,7 +526,7 @@ function drawAnchor(ctx, tick, anim) {
 }
 
 /**
- * Draws the news desk and microphone in the foreground.
+ * Draws the news desk and microphone in the foreground. This represents the "table" and microphone.
  * @param {!CanvasRenderingContext2D} ctx
  */
 function drawStudioForeground(ctx) {
