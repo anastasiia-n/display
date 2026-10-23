@@ -79,6 +79,27 @@ function setTvMode(forceState) {
 }
 
 /**
+ * Punches a hole in the CRT overlay so scanlines skip the backstage monitor image.
+ * Coordinates follow MONITOR_* / CANVAS_* so the hole tracks the drawn screen.
+ */
+function applyScanlineMonitorHole() {
+  if (!els.scanlineOverlay) {
+    return;
+  }
+
+  const left = (MONITOR_X / CANVAS_WIDTH) * 100;
+  const top = (MONITOR_Y / CANVAS_HEIGHT) * 100;
+  const right = ((MONITOR_X + MONITOR_WIDTH) / CANVAS_WIDTH) * 100;
+  const bottom = ((MONITOR_Y + MONITOR_HEIGHT) / CANVAS_HEIGHT) * 100;
+
+  // evenodd: outer full frame minus inner monitor rect.
+  els.scanlineOverlay.style.clipPath =
+      `polygon(evenodd, 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, ` +
+      `${left}% ${top}%, ${right}% ${top}%, ${right}% ${bottom}%, ` +
+      `${left}% ${bottom}%, ${left}% ${top}%)`;
+}
+
+/**
  * Toggles the CRT scanline overlay and updates the status label.
  */
 function toggleScanlines() {
@@ -317,11 +338,6 @@ function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
     drawPlaceholderScreen(ctx, screenX, screenY, screenW, screenH);
   }
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-  for (let i = 0; i < screenH; i += 4) {
-    ctx.fillRect(screenX, screenY + i, screenW, 2);
-  }
-
   ctx.restore();
 }
 
@@ -500,6 +516,7 @@ function bindUiEvents(loadBgImage) {
  */
 function initStudio() {
   cacheElements();
+  applyScanlineMonitorHole();
 
   const canvas = /** @type {!HTMLCanvasElement} */ (els.pixelCanvas);
   const ctx = canvas.getContext('2d');
