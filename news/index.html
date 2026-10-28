@@ -37,14 +37,14 @@
            class="absolute inset-0 scanlines crt-flicker z-10"
            aria-hidden="true"></div>
 
-      <div class="absolute bottom-0 left-0 right-0 h-10 md:h-12 bg-red-950 border-t-2 border-red-600 flex items-center z-20 overflow-hidden shadow-inner">
-        <div class="bg-yellow-500 text-black font-bold px-3 md:px-4 h-full flex items-center z-20 shrink-0 text-xs md:text-sm tracking-wider uppercase border-r-2 border-yellow-600 pixel-font shadow-md">
+      <div class="ticker-bar absolute bottom-0 left-0 right-0 h-10 md:h-12 bg-red-950 border-t-2 border-red-600 flex items-center z-20 overflow-hidden shadow-inner">
+        <div class="ticker-label bg-yellow-500 text-black font-bold px-3 md:px-4 h-full flex items-center z-20 shrink-0 text-xs md:text-sm tracking-wider uppercase border-r-2 border-yellow-600 pixel-font shadow-md">
           BREAKING NEWS
         </div>
         <div class="overflow-hidden flex-1 relative h-full flex items-center">
           <div id="ticker-text-container" class="w-full">
             <span id="ticker-text"
-                  class="animate-marquee text-lg md:text-xl font-bold tracking-widest text-yellow-300 font-mono"></span>
+                  class="ticker-message animate-marquee text-lg md:text-xl font-bold tracking-widest text-yellow-300 font-mono"></span>
           </div>
         </div>
       </div>

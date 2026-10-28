@@ -81,6 +81,20 @@ body {
   animation-play-state: paused;
 }
 
+@media (min-width: 1920px) {
+  .ticker-bar {
+    height: 4rem;
+  }
+
+  .ticker-label {
+    font-size: 1rem;
+  }
+
+  .ticker-message {
+    font-size: clamp(2rem, 1.8vw, 2.5rem);
+  }
+}
+
 .pixel-canvas {
   display: block;
   width: 100%;
