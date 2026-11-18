@@ -29,7 +29,7 @@
 
   <main id="main-broadcast-container"
         class="w-full max-w-6xl relative bg-black border-8 border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col items-center justify-center">
-    <div class="relative w-full aspect-video bg-slate-900 overflow-hidden flex items-center justify-center">
+    <div class="broadcast-stage relative w-full aspect-video bg-slate-900 overflow-hidden flex items-center justify-center">
       <canvas id="pixel-canvas" class="pixel-canvas" width="1920" height="1080"
               aria-label="Pixel news broadcast studio"></canvas>
 
@@ -37,14 +37,14 @@
            class="absolute inset-0 scanlines crt-flicker z-10"
            aria-hidden="true"></div>
 
-      <div class="ticker-bar absolute bottom-0 left-0 right-0 h-10 md:h-12 bg-red-950 border-t-2 border-red-600 flex items-center z-20 overflow-hidden shadow-inner">
-        <div class="ticker-label bg-yellow-500 text-black font-bold px-3 md:px-4 h-full flex items-center z-20 shrink-0 text-xs md:text-sm tracking-wider uppercase border-r-2 border-yellow-600 pixel-font shadow-md">
+      <div class="ticker-bar absolute bottom-0 left-0 right-0 bg-red-950 border-red-600 flex items-center z-20 overflow-hidden shadow-inner">
+        <div class="ticker-label bg-yellow-500 text-black font-bold h-full flex items-center z-20 shrink-0 tracking-wider uppercase border-yellow-600 pixel-font shadow-md">
           BREAKING NEWS
         </div>
         <div class="overflow-hidden flex-1 relative h-full flex items-center">
           <div id="ticker-text-container" class="w-full">
             <span id="ticker-text"
-                  class="ticker-message animate-marquee text-lg md:text-xl font-bold tracking-widest text-yellow-300 font-mono"></span>
+                  class="ticker-message animate-marquee font-bold tracking-wider text-yellow-300 pixel-font"></span>
           </div>
         </div>
       </div>

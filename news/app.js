@@ -49,6 +49,40 @@ const PRESENTER_DRAWERS = {
   robot: drawRobotPresenter,
 };
 
+const TV_MODE_CLASSES = [
+  'tv-mode-active', 'h-screen', 'max-w-none', 'p-0', 'm-0',
+  'rounded-none', 'border-0',
+];
+const STUDIO_MODE_CLASSES = ['max-w-6xl', 'rounded-lg', 'border-8'];
+
+const CITY_STARS = [
+  {x: 40, y: 20}, {x: 120, y: 35}, {x: 230, y: 15},
+  {x: 310, y: 40}, {x: 410, y: 25}, {x: 490, y: 45},
+];
+
+const CITY_FAR_BUILDINGS = [
+  [0, 40, 70], [35, 30, 90], [60, 50, 60], [105, 40, 110],
+  [140, 55, 80], [190, 35, 100], [220, 60, 75], [275, 45, 120],
+  [315, 50, 85], [360, 40, 105], [395, 60, 70], [450, 50, 115],
+  [495, 45, 80], [535, 65, 95],
+];
+
+const CITY_NEAR_BUILDINGS = [
+  [10, 50, 120, '#0f172a', '#06b6d4', false],
+  [70, 40, 150, '#111827', '#f43f5e', true],
+  [120, 65, 100, '#0f172a', '#a855f7', false],
+  [195, 45, 165, '#111827', '#eab308', false],
+  [250, 55, 130, '#0f172a', '#06b6d4', false],
+  [315, 70, 110, '#111827', '#ec4899', false],
+  [390, 45, 155, '#0f172a', '#22c55e', true],
+  [445, 60, 125, '#111827', '#38bdf8', false],
+  [515, 55, 140, '#0f172a', '#f43f5e', false],
+];
+
+const PLACEHOLDER_STRIPE_COLORS = [
+  '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#ec4899',
+];
+
 /**
  * Cached DOM element references. Populated on DOMContentLoaded.
  * @type {Object<string, ?Element>}
@@ -60,32 +94,17 @@ const els = {};
  * @param {boolean=} forceState If set, forces TV mode on/off; otherwise toggles.
  */
 function setTvMode(forceState) {
-  if (typeof forceState === 'boolean') {
-    state.tvMode = forceState;
-  } else {
-    state.tvMode = !state.tvMode;
-  }
+  state.tvMode = typeof forceState === 'boolean' ? forceState : !state.tvMode;
 
   const header = document.querySelector('header');
-  const chrome = [header, els.studioControls, els.studioFooter];
+  [header, els.studioControls, els.studioFooter].forEach(
+      (el) => el && el.classList.toggle('hidden', state.tvMode));
 
-  if (state.tvMode) {
-    chrome.forEach((el) => el && el.classList.add('hidden'));
-    if (els.mainBroadcastContainer) {
-      els.mainBroadcastContainer.classList.remove('max-w-6xl');
-      els.mainBroadcastContainer.classList.add(
-          'w-full', 'h-screen', 'max-w-none', 'p-0', 'm-0', 'rounded-none',
-          'border-0');
-    }
-  } else {
-    chrome.forEach((el) => el && el.classList.remove('hidden'));
-    if (els.mainBroadcastContainer) {
-      els.mainBroadcastContainer.classList.add(
-          'max-w-6xl', 'rounded-lg', 'border-8');
-      els.mainBroadcastContainer.classList.remove(
-          'w-full', 'h-screen', 'max-w-none', 'p-0', 'm-0', 'rounded-none',
-          'border-0');
-    }
+  if (els.mainBroadcastContainer) {
+    TV_MODE_CLASSES.forEach(
+        (cls) => els.mainBroadcastContainer.classList.toggle(cls, state.tvMode));
+    STUDIO_MODE_CLASSES.forEach(
+        (cls) => els.mainBroadcastContainer.classList.toggle(cls, !state.tvMode));
   }
 
   updateShareUrl();
@@ -136,24 +155,21 @@ function applyScanlineMonitorHole() {
 }
 
 /**
- * Toggles the CRT scanline overlay and updates the status label.
+ * Sets or toggles the CRT scanline overlay and updates the status label.
+ * @param {boolean=} forceState If set, forces scanlines on/off; otherwise toggles.
  */
-function toggleScanlines() {
-  state.scanlinesActive = !state.scanlinesActive;
+function setScanlines(forceState) {
+  state.scanlinesActive =
+      typeof forceState === 'boolean' ? forceState : !state.scanlinesActive;
 
-  if (!els.scanlineOverlay || !els.scanlinesStatus) {
-    return;
+  if (els.scanlineOverlay && els.scanlinesStatus) {
+    els.scanlineOverlay.classList.toggle('hidden', !state.scanlinesActive);
+    els.scanlinesStatus.textContent = state.scanlinesActive ? 'ON' : 'OFF';
+    els.scanlinesStatus.className =
+        state.scanlinesActive ? 'text-green-400' : 'text-red-400';
   }
 
-  if (state.scanlinesActive) {
-    els.scanlineOverlay.classList.remove('hidden');
-    els.scanlinesStatus.textContent = 'ON';
-    els.scanlinesStatus.className = 'text-green-400';
-  } else {
-    els.scanlineOverlay.classList.add('hidden');
-    els.scanlinesStatus.textContent = 'OFF';
-    els.scanlinesStatus.className = 'text-red-400';
-  }
+  updateShareUrl();
 }
 
 /**
@@ -210,6 +226,9 @@ function updateShareUrl() {
     params.set('ticker', tickerVal);
   }
   params.set('presenter', state.presenter);
+  if (!state.scanlinesActive) {
+    params.set('scanlines', 'false');
+  }
   if (state.tvMode) {
     params.set('tv', 'true');
   }
@@ -220,7 +239,20 @@ function updateShareUrl() {
 }
 
 /**
- * Parses location.hash and applies img, ticker, presenter, and tv settings.
+ * Sets ticker text and scales marquee duration so reading speed stays steady.
+ * @param {string} text
+ */
+function setTickerText(text) {
+  if (!els.tickerText) {
+    return;
+  }
+  els.tickerText.textContent = text;
+  const durationSec = Math.max(14, Math.round(12 + text.length * 0.28));
+  els.tickerText.style.setProperty('--marquee-duration', `${durationSec}s`);
+}
+
+/**
+ * Parses location.hash and applies img, ticker, presenter, scanlines, and tv settings.
  * @param {function(string): void} loadBgImage Callback to load a background.
  */
 function parseHash(loadBgImage) {
@@ -230,6 +262,7 @@ function parseHash(loadBgImage) {
   const imgParam = params.get('img');
   const tickerParam = params.get('ticker');
   const presenterParam = params.get('presenter');
+  const scanlinesParam = params.get('scanlines');
   const tvParam = params.get('tv') || params.get('tvmode');
 
   state.presenter = PRESENTER_IDS.includes(presenterParam) ?
@@ -244,19 +277,12 @@ function parseHash(loadBgImage) {
     loadBgImage(DEFAULT_BG_URL);
   }
 
-  if (tickerParam != null) {
-    els.inputTickerText.value = tickerParam;
-    els.tickerText.textContent = tickerParam;
-  } else {
-    els.inputTickerText.value = '';
-    els.tickerText.textContent = '';
-  }
+  const tickerText = tickerParam != null ? tickerParam : '';
+  els.inputTickerText.value = tickerText;
+  setTickerText(tickerText);
 
-  if (tvParam === 'true' || tvParam === '1') {
-    setTvMode(true);
-  }
-
-  updateShareUrl();
+  setScanlines(scanlinesParam !== 'false' && scanlinesParam !== '0');
+  setTvMode(tvParam === 'true' || tvParam === '1');
 }
 
 /**
@@ -312,11 +338,7 @@ function drawNightCityGraphic(ctx, x, y, width, height, tick) {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, sceneWidth, sceneHeight);
 
-  const stars = [
-    {x: 40, y: 20}, {x: 120, y: 35}, {x: 230, y: 15},
-    {x: 310, y: 40}, {x: 410, y: 25}, {x: 490, y: 45},
-  ];
-  stars.forEach((star, index) => {
+  CITY_STARS.forEach((star, index) => {
     if ((animationTick + index * 15) % 40 < 25) {
       ctx.fillStyle = index % 2 === 0 ? '#38bdf8' : '#f43f5e';
       ctx.fillRect(star.x, star.y, 3, 3);
@@ -324,29 +346,12 @@ function drawNightCityGraphic(ctx, x, y, width, height, tick) {
   });
 
   ctx.fillStyle = '#1e1b4b';
-  const farBuildings = [
-    [0, 40, 70], [35, 30, 90], [60, 50, 60], [105, 40, 110],
-    [140, 55, 80], [190, 35, 100], [220, 60, 75], [275, 45, 120],
-    [315, 50, 85], [360, 40, 105], [395, 60, 70], [450, 50, 115],
-    [495, 45, 80], [535, 65, 95],
-  ];
-  farBuildings.forEach(([buildingX, buildingW, buildingH]) => {
+  CITY_FAR_BUILDINGS.forEach(([buildingX, buildingW, buildingH]) => {
     ctx.fillRect(
         buildingX, sceneHeight - buildingH, buildingW, buildingH);
   });
 
-  const nearBuildings = [
-    [10, 50, 120, '#0f172a', '#06b6d4', false],
-    [70, 40, 150, '#111827', '#f43f5e', true],
-    [120, 65, 100, '#0f172a', '#a855f7', false],
-    [195, 45, 165, '#111827', '#eab308', false],
-    [250, 55, 130, '#0f172a', '#06b6d4', false],
-    [315, 70, 110, '#111827', '#ec4899', false],
-    [390, 45, 155, '#0f172a', '#22c55e', true],
-    [445, 60, 125, '#111827', '#38bdf8', false],
-    [515, 55, 140, '#0f172a', '#f43f5e', false],
-  ];
-  nearBuildings.forEach(
+  CITY_NEAR_BUILDINGS.forEach(
       ([buildingX, buildingW, buildingH, color, accent, hasAntenna], index) => {
         const buildingY = sceneHeight - buildingH;
         ctx.fillStyle = color;
@@ -434,92 +439,8 @@ function drawPlaceholderScreen(ctx, x, y, w, h) {
   ctx.fillStyle = '#0284c7';
   ctx.fillRect(x, y, w, h);
 
-  const colors =
-      ['#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#ec4899'];
-  const stripeW = w / colors.length;
-  colors.forEach((col, idx) => {
-    ctx.fillStyle = col;
-    ctx.fillRect(x + idx * stripeW, y, stripeW, h - 30);
-  });
-
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(x, y + h - 30, w, 30);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '8.4px "Press Start 2P"';
-  ctx.fillText('NO MEDIA SIGNAL', x + 14, y + h - 7);
-}
-
-/**
- * Draws the backstage media monitor, optionally filled with a user image.
- * This is the main "image" display.
- * @param {!CanvasRenderingContext2D} ctx
- * @param {?HTMLImageElement} bgImage
- * @param {boolean} isBgLoaded
- */
-function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
-  const screenX = MONITOR_X;
-  const screenY = MONITOR_Y;
-  const screenW = MONITOR_WIDTH;
-  const screenH = MONITOR_HEIGHT;
-
-  ctx.fillStyle = '#090d16';
-  ctx.fillRect(screenX - 6, screenY - 6, screenW + 12, screenH + 12);
-
-  ctx.fillStyle = '#334155';
-  ctx.fillRect(screenX - 2, screenY - 2, screenW + 4, screenH + 4);
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(screenX, screenY, screenW, screenH);
-  ctx.clip();
-
-  if (isBgLoaded && bgImage && bgImage.complete) {
-    try {
-      // Cover-fit into the 16:9 monitor; crop overflow.
-      const imgRatio = bgImage.width / bgImage.height;
-      const screenRatio = 16 / 9;
-      let renderW = screenW;
-      let renderH = screenH;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (imgRatio > screenRatio) {
-        renderW = screenH * imgRatio;
-        offsetX = (screenW - renderW) / 2;
-      } else {
-        renderH = screenW / imgRatio;
-        offsetY = (screenH - renderH) / 2;
-      }
-
-      ctx.drawImage(
-          bgImage, screenX + offsetX, screenY + offsetY, renderW, renderH);
-    } catch (err) {
-      drawPlaceholderScreen(ctx, screenX, screenY, screenW, screenH);
-    }
-  } else {
-    drawPlaceholderScreen(ctx, screenX, screenY, screenW, screenH);
-  }
-
-  ctx.restore();
-}
-
-/**
- * Draws the colorful "no signal" placeholder on the backstage monitor.
- * @param {!CanvasRenderingContext2D} ctx
- * @param {number} x
- * @param {number} y
- * @param {number} w
- * @param {number} h
- */
-function drawPlaceholderScreen(ctx, x, y, w, h) {
-  ctx.fillStyle = '#0284c7';
-  ctx.fillRect(x, y, w, h);
-
-  const colors =
-      ['#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#ec4899'];
-  const stripeW = w / colors.length;
-  colors.forEach((col, idx) => {
+  const stripeW = w / PLACEHOLDER_STRIPE_COLORS.length;
+  PLACEHOLDER_STRIPE_COLORS.forEach((col, idx) => {
     ctx.fillStyle = col;
     ctx.fillRect(x + idx * stripeW, y, stripeW, h - 30);
   });
@@ -555,11 +476,10 @@ function drawBackstageScreen(ctx, bgImage, isBgLoaded) {
   ctx.rect(screenX, screenY, screenW, screenH);
   ctx.clip();
 
-  if (isBgLoaded && bgImage && bgImage.complete) {
+  if (isBgLoaded && bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
     try {
-      // Cover-fit into the 16:9 monitor; crop overflow.
-      const imgRatio = bgImage.width / bgImage.height;
-      const screenRatio = 16 / 9;
+      const imgRatio = bgImage.naturalWidth / bgImage.naturalHeight;
+      const screenRatio = screenW / screenH;
       let renderW = screenW;
       let renderH = screenH;
       let offsetX = 0;
@@ -997,7 +917,7 @@ function bindUiEvents(loadBgImage) {
     els.tvModeBtn.addEventListener('click', () => setTvMode());
   }
   if (els.scanlinesBtn) {
-    els.scanlinesBtn.addEventListener('click', toggleScanlines);
+    els.scanlinesBtn.addEventListener('click', () => setScanlines());
   }
   if (els.copyBtn) {
     els.copyBtn.addEventListener('click', () => {
@@ -1015,7 +935,7 @@ function bindUiEvents(loadBgImage) {
   });
 
   els.inputTickerText.addEventListener('input', (e) => {
-    els.tickerText.textContent = e.target.value;
+    setTickerText(e.target.value);
     updateShareUrl();
   });
 
@@ -1052,19 +972,24 @@ function initStudio() {
   let isBgLoaded = false;
 
   /**
-   * Loads a background image URL onto the studio monitor.
+   * Loads a background image URL onto the studio monitor, ignoring stale callbacks.
    * @param {string} url
    */
   function loadBgImage(url) {
     isBgLoaded = false;
-    bgImage = new Image();
-    bgImage.onload = () => {
-      isBgLoaded = true;
+    const img = new Image();
+    bgImage = img;
+    img.onload = () => {
+      if (bgImage === img) {
+        isBgLoaded = true;
+      }
     };
-    bgImage.onerror = () => {
-      isBgLoaded = false;
+    img.onerror = () => {
+      if (bgImage === img) {
+        isBgLoaded = false;
+      }
     };
-    bgImage.src = url;
+    img.src = url;
   }
 
   const anim = {
@@ -1078,9 +1003,6 @@ function initStudio() {
   /** Renders one animation frame. */
   function render() {
     tick++;
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     drawStudioBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT);
     drawPresenterBackdrop(ctx, tick);
     drawBackstageScreen(ctx, bgImage, isBgLoaded);

@@ -63,36 +63,52 @@ body {
 
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translate3d(0, 0, 0);
   }
 
   100% {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
   }
 }
 
 .animate-marquee {
   display: inline-block;
+  padding-left: 100%;
   white-space: nowrap;
-  animation: marquee 16s linear infinite;
+  animation: marquee var(--marquee-duration, 18s) linear infinite;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-@media (min-width: 1920px) {
-  .ticker-bar {
-    height: 4rem;
-  }
+/* Scale ticker proportionally to the 16:9 broadcast stage (cqw) so Studio preview,
+   1080p, and 4K TVs (at any OS DPI scale) all render a full-sized lower-third bar. */
+.broadcast-stage {
+  container-type: inline-size;
+}
 
-  .ticker-label {
-    font-size: 1rem;
-  }
+.tv-mode-active .broadcast-stage {
+  width: min(100vw, calc(100vh * 16 / 9));
+}
 
-  .ticker-message {
-    font-size: clamp(2rem, 1.8vw, 2.5rem);
-  }
+.ticker-bar {
+  height: clamp(2.75rem, 6.2cqw, 16rem);
+  border-top-width: clamp(2px, 0.22cqw, 10px);
+  border-top-style: solid;
+}
+
+.ticker-label {
+  padding: 0 clamp(0.75rem, 1.6cqw, 5rem);
+  font-size: clamp(0.7rem, 1.55cqw, 6rem);
+  line-height: 1;
+  border-right-width: clamp(2px, 0.22cqw, 10px);
+  border-right-style: solid;
+}
+
+.ticker-message {
+  font-size: clamp(0.95rem, 2.3cqw, 9rem);
+  line-height: 1.2;
 }
 
 .pixel-canvas {

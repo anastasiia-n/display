@@ -13,6 +13,7 @@ Configure it using the studio controls on the page (click **COPY LINK** to copy 
 | `ticker` | empty | Scrolling `BREAKING NEWS` marquee text (pauses on hover). |
 | `img` | City/tech photo | Image URL cover-fitted onto the 16:9 backstage screen. Shows `NO MEDIA SIGNAL` color bars if it fails to load. |
 | `presenter` | `male` | Anchor character: `male`, `female`, `cyber`, or `robot`. |
+| `scanlines` | `true` | Set `scanlines=false` or `scanlines=0` to disable the CRT scanline overlay. |
 | `tv` (or `tvmode`) | `false` | Set `tv=true` or `tv=1` to hide all studio controls and fill `100vw x 100vh`. |
 
 ## Controls and shortcuts
