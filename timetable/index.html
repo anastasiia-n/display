@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Munich Hackerbrücke Departures</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="header-title">
+      <h1 id="board-title">Munich Hackerbrücke</h1>
+      <p id="board-subtitle">7 min walk to Hackerbrücke S-Bahn</p>
+    </div>
+    <time id="clock">--:--</time>
+  </header>
+
+  <main>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" class="col-leave">Leave Time</th>
+          <th scope="col" class="col-dep">Actual Departure</th>
+          <th scope="col" class="col-line">Line</th>
+          <th scope="col" class="col-dest">Destination</th>
+        </tr>
+      </thead>
+      <tbody id="board"></tbody>
+    </table>
+  </main>
+</body>
+</html>

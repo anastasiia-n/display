@@ -1,0 +1,269 @@
+:root {
+  --bg-page: #ffffff;
+  --bg-row-alt: #f9fafb;
+  --border-strong: #e5e7eb;
+  --border-subtle: #f3f4f6;
+
+  --text-primary: #111827;
+  --text-clock: #1f2937;
+  --text-muted: #6b7280;
+  --text-strike: #9ca3af;
+
+  --accent-blue: #1d4ed8;
+  --tag-bg: #dbeafe;
+  --tag-text: #1e40af;
+
+  --urgent-bg: #fee2e2;
+  --urgent-text: #991b1b;
+  --delay-text: #dc2626;
+
+  /* Shared MVG trunk colors reused in two-tone U7/U8 reinforcement badges */
+  --mvg-u1: #52822f;
+  --mvg-u2: #c20831;
+  --mvg-u3: #ec6726;
+
+  /* Driven dynamically by ?rows=N in app.js */
+  --font-scale: 1;
+  --pad-scale: 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2vh 3vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 1.8vh;
+  padding-bottom: 1.2vh;
+  border-bottom: 3px solid var(--border-strong);
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 3vw;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  margin: 0.35vh 0 0;
+  font-size: 1.5vw;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+#clock {
+  font-size: 3.45vw;
+  font-weight: 800;
+  color: var(--text-clock);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Departures Table */
+main {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: calc(2.3vw * var(--font-scale));
+}
+
+th {
+  padding: 0.8vh 0.8vw;
+  text-align: left;
+  font-size: 1.5vw;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-strong);
+}
+
+tbody tr {
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+tbody tr:nth-child(even) {
+  background: var(--bg-row-alt);
+}
+
+td {
+  padding: calc(1.65vh * var(--pad-scale)) 0.8vw;
+  vertical-align: middle;
+}
+
+/* Column Widths (applied to both th and td for table-layout: fixed) */
+.col-leave { width: 23%; }
+.col-dep   { width: 21%; }
+.col-line  { width: 10%; }
+.col-dest  { width: 46%; }
+
+td.col-leave {
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+td.col-dep {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+td.col-dest {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dest-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8vw;
+  min-width: 0;
+}
+
+.dest-name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status Pills & Sub-labels (em units scale cleanly on 4K displays and with --font-scale) */
+.filter-pill,
+.stale-pill,
+.station-badge,
+.leave-tag,
+.delay-badge {
+  display: inline-block;
+  padding: 0.14em 0.52em;
+  border-radius: 0.36em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.filter-pill {
+  margin-left: 0.5em;
+  font-size: 1.15vw;
+  font-weight: 700;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+}
+
+.stale-pill {
+  margin-left: 0.5em;
+  font-size: 1.15vw;
+  font-weight: 700;
+  background: var(--urgent-bg);
+  color: var(--urgent-text);
+}
+
+.station-badge {
+  flex-shrink: 0;
+  font-size: calc(1.15vw * var(--font-scale));
+  font-weight: 600;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.leave-tag {
+  margin-left: 0.35em;
+  font-size: calc(1.3vw * var(--font-scale));
+  font-weight: 700;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+}
+
+.leave-tag.urgent {
+  background: var(--urgent-bg);
+  color: var(--urgent-text);
+}
+
+.delay-badge {
+  margin-left: 0.35em;
+  font-size: calc(1.2vw * var(--font-scale));
+  font-weight: 700;
+  background: var(--urgent-bg);
+  color: var(--delay-text);
+}
+
+.sched-sub {
+  margin-left: 0.25em;
+  font-size: calc(1.3vw * var(--font-scale));
+  font-weight: 500;
+  color: var(--text-strike);
+  text-decoration: line-through;
+  vertical-align: middle;
+}
+
+.empty-row td.empty-state {
+  padding: 8vh 1vw;
+  text-align: center;
+  font-size: 2vw;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Line Badges (Official Munich MVV S-Bahn & MVG U-Bahn Colors) */
+.badge {
+  display: inline-block;
+  min-width: calc(5.2vw * var(--font-scale));
+  padding: calc(0.28vh * var(--pad-scale)) calc(0.75vw * var(--font-scale));
+  border-radius: 0.38em;
+  text-align: center;
+  font-size: calc(2.1vw * var(--font-scale));
+  font-weight: 900;
+}
+
+.s1  { background-color: #0099db; color: #ffffff; }
+.s2  { background-color: #71b02f; color: #ffffff; }
+.s3  { background-color: #992787; color: #ffffff; }
+.s4  { background-color: #df4b26; color: #ffffff; }
+.s5  { background-color: #005f7f; color: #ffffff; }
+.s6  { background-color: #008b4c; color: #ffffff; }
+.s7  { background-color: #963832; color: #ffffff; }
+.s8  { background-color: #f5b200; color: #111827; }
+.s20 { background-color: #e6007e; color: #ffffff; }
+
+.u1  { background-color: var(--mvg-u1); color: #ffffff; }
+.u2  { background-color: var(--mvg-u2); color: #ffffff; }
+.u3  { background-color: var(--mvg-u3); color: #ffffff; }
+.u4  { background-color: #00a984; color: #ffffff; }
+.u5  { background-color: #bc7a00; color: #ffffff; }
+.u6  { background-color: #0065ae; color: #ffffff; }
+
+/* MVG U7 (U1+U2) and U8 (U2+U3) are peak/weekend reinforcement lines sharing two trunks */
+.u7 {
+  background: linear-gradient(135deg, var(--mvg-u1) 50%, var(--mvg-u2) 50%);
+  color: #ffffff;
+}
+.u8 {
+  background: linear-gradient(135deg, var(--mvg-u2) 50%, var(--mvg-u3) 50%);
+  color: #ffffff;
+}
+
+.s-default { background-color: #4b5563; color: #ffffff; }
